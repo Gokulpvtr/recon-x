@@ -82,10 +82,10 @@ def main():
     
     parser = argparse.ArgumentParser(
         description="🎯 RECON-X: Automated reconnaissance for offensive security",
-        epilog="Example: python src/main.py -d example.com"
+        epilog="Example: python -m src.main -d example.com -t 15"
     )
     parser.add_argument('-d', '--domain', required=True, help='🎯 Target domain')
-    parser.add_argument('-t', '--threads', type=int, default=10, help='⚡ Thread count')
+    parser.add_argument('-t', '--threads', type=int, default=10, help='⚡ Thread count (default: 10)')
     parser.add_argument('--screenshot', action='store_true', help='📸 Enable screenshots')
     parser.add_argument('--full', action='store_true', help='🔍 Full enumeration')
     
@@ -105,7 +105,7 @@ def main():
     
     # Run subdomain enumeration
     output_file = f"output/{args.domain}_subdomains.json"
-    subdomains = run_enumeration(args.domain, output_file)
+    subdomains = run_enumeration(args.domain, output_file, threads=args.threads)
     
     # Show network diagram
     print(print_network_diagram())
