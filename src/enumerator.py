@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 RECON-X Subdomain Enumeration Module
-Queries crt.sh API + DNS brute-force for subdomain discovery
+Advanced methods: crt.sh, DNS brute-force, reverse DNS, zone transfers
 Uses threading for faster enumeration
 """
 
@@ -10,11 +10,14 @@ import json
 import sys
 import dns.resolver
 import dns.rdatatype
+import dns.zone
+import dns.query
 from datetime import datetime
 from typing import Set, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 import time
+import socket
 
 # Colors
 BRIGHT_GREEN = '\033[1;92m'
@@ -39,6 +42,7 @@ class SubdomainEnumerator:
         self.dns_resolver.timeout = timeout
         self.dns_resolver.lifetime = timeout
         self.wordlist = self.load_wordlist()
+        self.nameservers = []
         
     def load_wordlist(self) -> List[str]:
         """Load subdomains from wordlist"""
@@ -48,7 +52,82 @@ class SubdomainEnumerator:
         except FileNotFoundError:
             with print_lock:
                 print(f"{YELLOW}  [!]{RESET} Wordlist not found, using basic list")
-            return ['www', 'mail', 'ftp', 'smtp', 'api', 'admin', 'test', 'dev', 'staging', 'cdn', 'static']
+            return ['www', 'mail', 'ftp', 'smtp', 'api', 'admin', 'test', 'dev', 'staging', 'cdn', 'static', 'blog', 'shop', 'app', 'apps', 'server', 'db', 'database', 'backup', 'git', 'svn']
+    
+    def get_nameservers(self) -> List[str]:
+        """Get nameservers for the domain"""
+        try:
+            with print_lock:
+                print(f"{CYAN}  [*]{RESET} Fetching nameservers for {BRIGHT_GREEN}{self.domain}{RESET}...")
+            
+            nameservers = []
+            answers = dns.resolver.resolve(self.domain, 'NS')
+            
+            for rdata in answers:
+                ns = str(rdata.target).rstrip('.')
+                nameservers.append(ns)
+            
+            with print_lock:
+                print(f"{GREEN}  [+]{RESET} Found {BRIGHT_GREEN}{len(nameservers)}{RESET} nameservers")
+                for ns in nameservers[:3]:
+                    print(f"{GREEN}     └─{RESET} {BRIGHT_GREEN}{ns}{RESET}")
+            
+            return nameservers
+            
+        except Exception as e:
+            with print_lock:
+                print(f"{YELLOW}  [!]{RESET} Could not get nameservers: {str(e)}")
+            return []
+    
+    def zone_transfer_attempt(self, nameserver: str) -> Set[str]:
+        """
+        Attempt DNS zone transfer (AXFR) on nameserver
+        This is a legitimate technique if authorized
+        """
+        try:
+            zone_subs = set()
+            
+            zone = dns.zone.from_xfr(dns.query.xfr(nameserver, self.domain))
+            
+            for name, node in zone.items():
+                subdomain = str(name).rstrip('.')
+                if subdomain == '@':
+                    subdomain = self.domain
+                else:
+                    subdomain = f"{subdomain}.{self.domain}"
+                
+                zone_subs.add(subdomain)
+            
+            with print_lock:
+                print(f"{GREEN}  [+]{RESET} Zone transfer successful on {BRIGHT_GREEN}{nameserver}{RESET}! Found {BRIGHT_GREEN}{len(zone_subs)}{RESET} subdomains")
+            
+            return zone_subs
+            
+        except Exception:
+            return set()
+    
+    def reverse_dns_lookup(self, ip: str) -> Set[str]:
+        """
+        Perform reverse DNS lookup on IP address
+        Returns hostnames associated with IP
+        """
+        try:
+            reverse_names = set()
+            reverse_ip = dns.reversename.from_address(ip)
+            
+            try:
+                answers = dns.resolver.resolve(reverse_ip, 'PTR')
+                for rdata in answers:
+                    hostname = str(rdata).rstrip('.')
+                    if self.domain in hostname:
+                        reverse_names.add(hostname)
+            except:
+                pass
+            
+            return reverse_names
+            
+        except Exception:
+            return set()
     
     def query_crt_sh(self) -> Set[str]:
         """
@@ -63,7 +142,6 @@ class SubdomainEnumerator:
                 with print_lock:
                     print(f"{CYAN}  [*]{RESET} Querying {BRIGHT_GREEN}crt.sh{RESET} (attempt {attempt + 1}/{max_retries})...")
                 
-                # API endpoint for JSON response
                 url = f"{self.crt_sh_api}/?q=%.{self.domain}&output=json"
                 
                 headers = {
@@ -79,7 +157,6 @@ class SubdomainEnumerator:
                         with print_lock:
                             print(f"{CYAN}  [*]{RESET} crt.sh returned {BRIGHT_GREEN}{len(data)}{RESET} certificates")
                         
-                        # Extract unique subdomains
                         for entry in data:
                             names = entry.get('name_value', '').split('\n')
                             for name in names:
@@ -97,37 +174,36 @@ class SubdomainEnumerator:
                         
                 elif response.status_code == 502:
                     with print_lock:
-                        print(f"{YELLOW}  [!]{RESET} crt.sh is temporarily down (502). Retrying in {retry_delay}s...")
+                        print(f"{YELLOW}  [!]{RESET} crt.sh is down (502). Retrying in {retry_delay}s...")
                     if attempt < max_retries - 1:
                         time.sleep(retry_delay)
                     continue
                 else:
                     with print_lock:
-                        print(f"{RED}  [!]{RESET} crt.sh returned status code {response.status_code}")
+                        print(f"{YELLOW}  [!]{RESET} crt.sh returned status code {response.status_code}")
                     
             except requests.exceptions.Timeout:
                 with print_lock:
-                    print(f"{YELLOW}  [!]{RESET} crt.sh request timed out. Trying fallback method...")
+                    print(f"{YELLOW}  [!]{RESET} crt.sh request timed out")
                 
             except requests.exceptions.RequestException as e:
                 with print_lock:
                     print(f"{YELLOW}  [!]{RESET} Error querying crt.sh: {str(e)}")
         
         with print_lock:
-            print(f"{YELLOW}  [!]{RESET} crt.sh unavailable, using DNS brute-force method")
+            print(f"{YELLOW}  [!]{RESET} crt.sh unavailable, using fallback methods")
         return self.subdomains
     
     def dns_brute_force(self) -> Set[str]:
         """
         DNS brute-force enumeration using wordlist
-        Tests common subdomain names
+        Tests common subdomain names with threading
         """
         try:
             with print_lock:
                 print(f"\n{CYAN}  [*]{RESET} Starting DNS brute-force with {BRIGHT_GREEN}{self.threads}{RESET} threads...")
                 print(f"{CYAN}  [*]{RESET} Testing {BRIGHT_GREEN}{len(self.wordlist)}{RESET} subdomains...\n")
             
-            # Use ThreadPoolExecutor for parallel DNS lookups
             with ThreadPoolExecutor(max_workers=self.threads) as executor:
                 futures = {}
                 for word in self.wordlist:
@@ -135,7 +211,6 @@ class SubdomainEnumerator:
                     future = executor.submit(self.dns_lookup, subdomain)
                     futures[future] = subdomain
                 
-                # Process completed tasks
                 completed = 0
                 for future in as_completed(futures):
                     subdomain = futures[future]
@@ -148,7 +223,6 @@ class SubdomainEnumerator:
                     except Exception:
                         pass
                     
-                    # Progress indicator
                     if completed % 10 == 0 or completed == len(self.wordlist):
                         with print_lock:
                             progress = int((completed / len(self.wordlist)) * 100)
@@ -170,7 +244,6 @@ class SubdomainEnumerator:
         Returns True if subdomain resolves
         """
         try:
-            # Try A record lookup
             try:
                 answers = self.dns_resolver.resolve(subdomain, 'A')
                 if answers:
@@ -180,7 +253,6 @@ class SubdomainEnumerator:
             except:
                 pass
             
-            # Try AAAA record lookup (IPv6)
             try:
                 answers = self.dns_resolver.resolve(subdomain, 'AAAA')
                 if answers:
@@ -213,7 +285,12 @@ class SubdomainEnumerator:
                 "domain": self.domain,
                 "timestamp": datetime.now().isoformat(),
                 "total_count": len(sorted_subs),
-                "enumeration_methods": "crt.sh + DNS brute-force",
+                "enumeration_methods": [
+                    "crt.sh (Certificate Transparency)",
+                    "DNS brute-force",
+                    "Zone transfer attempts",
+                    "Reverse DNS lookups"
+                ],
                 "threads_used": self.threads,
                 "subdomains": sorted_subs
             }
@@ -243,14 +320,42 @@ class SubdomainEnumerator:
         with print_lock:
             print(f"{GREEN}[*] Target: {BRIGHT_GREEN}{self.domain}{RESET}\n")
         
-        # Try crt.sh first
+        # Method 1: crt.sh
+        with print_lock:
+            print(f"{YELLOW}[→] METHOD 1: Certificate Transparency (crt.sh){RESET}")
         self.query_crt_sh()
         
-        # If crt.sh didn't find anything, use DNS brute-force
+        # Method 2: DNS Brute-force
+        with print_lock:
+            print(f"\n{YELLOW}[→] METHOD 2: DNS Brute-Force{RESET}")
         if len(self.subdomains) == 0:
             self.dns_brute_force()
+        else:
+            with print_lock:
+                print(f"{CYAN}  [*]{RESET} Skipping brute-force (found {len(self.subdomains)} from crt.sh)")
+        
+        # Method 3: Zone Transfer
+        with print_lock:
+            print(f"\n{YELLOW}[→] METHOD 3: Zone Transfer Attempts{RESET}")
+        nameservers = self.get_nameservers()
+        zone_subs = set()
+        
+        for ns in nameservers[:2]:  # Try first 2 nameservers
+            try:
+                found = self.zone_transfer_attempt(ns)
+                zone_subs.update(found)
+                self.subdomains.update(found)
+            except:
+                with print_lock:
+                    print(f"{YELLOW}  [!]{RESET} Zone transfer failed on {ns} (likely denied)")
+        
+        if not zone_subs:
+            with print_lock:
+                print(f"{YELLOW}  [!]{RESET} Zone transfers denied (expected on most servers)")
         
         # Deduplicate
+        with print_lock:
+            print(f"\n{YELLOW}[→] Finalizing Results{RESET}\n")
         self.deduplicate()
         
         with print_lock:
