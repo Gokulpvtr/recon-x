@@ -2,11 +2,21 @@
 import sys
 import argparse
 import os
+import warnings
 from datetime import datetime
-from src.enumerator import run_enumeration
-from src.prober import run_probing
-from src.detector import run_detection
-from src.reporter import generate_report
+
+# Suppress SSL warnings
+warnings.filterwarnings('ignore')
+
+try:
+    from src.enumerator import run_enumeration
+    from src.prober import run_probing
+    from src.detector import run_detection
+    from src.reporter import generate_report
+except ImportError as e:
+    print(f"Error: Failed to import modules. Make sure you're in the correct directory.")
+    print(f"Run: python -m src.main -d example.com")
+    sys.exit(1)
 
 # Hacker theme colors
 BRIGHT_GREEN = '\033[1;92m'
