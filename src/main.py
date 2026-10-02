@@ -52,7 +52,7 @@ def print_banner():
 {GREEN}  │ 📌 Version:  1.0                                    │{RESET}
 {GREEN}  │ 👤 Owner:    GOKULKRISHNAN S                        │{RESET}
 {GREEN}  │ 🔗 GitHub:   @Gokulpvtr                             │{RESET}
-{GREEN}  │ 🛡️  Type:     Bug Bounty & Security Research        │{RESET}
+{GREEN}  │ 🛡️  Type:     Bug Bounty & Offensive Security       │{RESET}
 {GREEN}  └─────────────────────────────────────────────────────┘{RESET}
 
 {BRIGHT_GREEN}══════════════════════════════════════════════════════════════════{RESET}
