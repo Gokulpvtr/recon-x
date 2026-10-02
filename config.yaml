@@ -1,0 +1,14 @@
+# RECON-X Configuration
+
+target_domain: "example.com"
+threads: 10
+timeout: 5
+output_dir: "output"
+screenshot: false
+full_enum: false
+
+# API Settings
+crt_sh_api: "https://crt.sh"
+
+# Wordlist
+subdomain_wordlist: "wordlists/subdomains.txt"
