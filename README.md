@@ -1,63 +1,83 @@
-# RECON-X
+```markdown
+# 🔍 RECON-X
 
-**Automated Reconnaissance & Enumeration Tool**  
-*Professional subdomain discovery, live host detection, technology fingerprinting, and HTML reporting*
+### Automated Reconnaissance & Enumeration Tool
+
+A Python-based reconnaissance tool for **subdomain discovery, live host detection, technology fingerprinting, and automated HTML reporting**.
 
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
-![Python](https://img.shields.io/badge/python-3.9+-blue)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 
 ---
 
-## 🎯 What It Does
+## 📸 RECON-X in Action
 
-RECON-X is a complete reconnaissance automation tool designed for offensive security testing and bug bounty hunting. It performs comprehensive subdomain enumeration, detects live hosts, identifies technologies, and generates professional HTML reports.
+<p align="center">
+  <img src="assets/recon-x.png" alt="RECON-X Terminal Screenshot" width="850">
+</p>
 
-### Key Features
+<p align="center">
+  <i>RECON-X performing automated reconnaissance and enumeration.</i>
+</p>
 
-- 🔍 **Subdomain Enumeration**: Multiple sources (crt.sh, DNS brute-force, zone transfers, reverse DNS)
-- ✅ **Live Host Detection**: HTTP/HTTPS probing with status codes and page titles
-- 🛠️ **Technology Fingerprinting**: Detects servers, frameworks, CMS, languages
-- 📊 **HTML Reporting**: Beautiful, professional reconnaissance reports
-- ⚡ **Multi-threaded**: Fast execution with configurable threading
-- 📁 **JSON Export**: Structured data for further analysis
-- 🎨 **Dark Hacker Theme**: Professional styling with green accent
+---
+
+## 🎯 Overview
+
+RECON-X automates common reconnaissance tasks used during authorized security assessments and bug bounty research.
+
+Instead of manually performing multiple enumeration steps, RECON-X combines **subdomain discovery, HTTP/HTTPS probing, technology detection, and reporting** into a single workflow.
+
+### ✨ Features
+
+- 🔍 **Subdomain Enumeration** — Certificate Transparency, DNS brute-forcing, zone-transfer checks, and reverse DNS
+- 🌐 **Live Host Detection** — HTTP/HTTPS probing with status codes and page titles
+- 🛠️ **Technology Fingerprinting** — Detects servers, frameworks, CMS platforms, and technologies
+- 📊 **HTML Reports** — Generates structured reconnaissance reports
+- ⚡ **Multi-threaded Scanning** — Configurable threading for faster enumeration
+- 📁 **JSON Export** — Saves structured results for further analysis or automation
+- ⚙️ **Configurable Workflow** — Skip or enable individual reconnaissance phases
+- 🎨 **Terminal Interface** — Dark security-focused CLI design
 
 ---
 
 ## 📋 Requirements
 
 - Python 3.9+
-- pip (Python package manager)
-- ~50MB disk space
+- pip
 - Internet connection
+- Approximately 50 MB of disk space
 
 ### Supported Platforms
 
-- ✅ Windows
-- ✅ macOS  
 - ✅ Linux
+- ✅ Windows
+- ✅ macOS
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Installation
 
-### 1. Clone Repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Gokulpvtr/recon-x.git
 cd recon-x
 ```
 
-### 2. Create Virtual Environment
+### 2. Create a Virtual Environment
 
-**Windows:**
+#### Windows
+
 ```bash
 python -m venv venv
 venv\Scripts\activate
 ```
 
-**macOS/Linux:**
+#### Linux / macOS
+
 ```bash
 python3 -m venv venv
 source venv/bin/activate
@@ -69,39 +89,20 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Run RECON-X
-
-```bash
-python -m src.main -d example.com -t 10
-```
-
 ---
 
 ## 💻 Usage
 
-### Basic Scan
+### Basic Reconnaissance
 
 ```bash
 python -m src.main -d target.com
 ```
 
-### With More Threads (Faster)
+### Specify Threads
 
 ```bash
 python -m src.main -d target.com -t 20
-```
-
-### Skip Specific Phases
-
-```bash
-# Skip live host probing
-python -m src.main -d target.com --no-probe
-
-# Skip technology detection
-python -m src.main -d target.com --no-detect
-
-# Skip HTML report generation
-python -m src.main -d target.com --no-report
 ```
 
 ### Full Enumeration
@@ -110,229 +111,307 @@ python -m src.main -d target.com --no-report
 python -m src.main -d target.com --full -t 25
 ```
 
----
+### Skip Live Host Probing
 
-## 📊 Output Files
-
-After running RECON-X, you'll get:
-
-output/
-├── target.com_subdomains.json # All discovered subdomains
-├── target.com_live_hosts.json # Live hosts with details
-├── target.com_tech_detection.json # Detected technologies
-└── target.com_report.html # Professional HTML report
-
-
-### Open the Report
-
-- **Windows**: Double-click `target.com_report.html`
-- **macOS/Linux**: `open output/target.com_report.html`
-
----
-
-## 🔧 Configuration
-
-Edit `config.yaml` to customize:
-
-```yaml
-target_domain: "example.com"
-threads: 10                    # Number of parallel threads
-timeout: 5                     # Request timeout in seconds
-output_dir: "output"           # Output directory
-screenshot: false              # Enable screenshots (future)
-full_enum: false               # Full enumeration mode
+```bash
+python -m src.main -d target.com --no-probe
 ```
 
+### Skip Technology Detection
+
+```bash
+python -m src.main -d target.com --no-detect
+```
+
+### Skip HTML Report Generation
+
+```bash
+python -m src.main -d target.com --no-report
+```
+
+> Replace `target.com` with a domain you own or are explicitly authorized to test.
+
 ---
 
-## 📈 Typical Results
+## 🔎 Reconnaissance Workflow
 
-For a medium-sized domain:
-
-- **Subdomains found**: 50-200
-- **Live hosts**: 10-50
-- **Execution time**: 2-5 minutes
-- **Report size**: 50-200 KB
-
----
-
-## ⚠️ Legal & Ethics
-
-### Authorization Required
-
-You **MUST** have explicit written permission before using RECON-X on any target. Unauthorized scanning is illegal.
-
-### Responsible Disclosure
-
-If you find vulnerabilities:
-1. Document your findings
-2. Notify the organization privately
-3. Give them 90 days to fix
-4. Follow coordinated disclosure guidelines
-
-### Terms of Service
-
-- Only use on domains you own or have authorization for
-- Respect rate limits and robots.txt
-- Don't disrupt services
-- Follow all applicable laws
+```text
+Target Domain
+     │
+     ▼
+┌──────────────────────┐
+│ Subdomain Discovery  │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ Live Host Detection  │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ Technology Detection │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ JSON + HTML Reports  │
+└──────────────────────┘
+```
 
 ---
 
 ## 🛠️ Enumeration Methods
 
-RECON-X uses multiple techniques:
+RECON-X combines several reconnaissance techniques:
 
-1. **Certificate Transparency (crt.sh)**: Queries public SSL certificate logs
-2. **DNS Brute-force**: Tests common subdomain names with wordlist
-3. **Zone Transfers**: Attempts AXFR queries (usually blocked)
-4. **Reverse DNS**: Looks up PTR records
-5. **Live Probing**: Tests HTTP/HTTPS on discovered subdomains
-6. **Header Analysis**: Detects server software
-7. **Content Analysis**: Identifies frameworks and CMS
-
----
-
-## 🎓 Learning Resources
-
-- [PortSwigger Web Security Academy](https://portswigger.net/web-security)
-- [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
-- [HackerOne Reports](https://hackerone.com/reports)
-- [Bug Bounty Programs](https://bugcrowd.com)
+1. **Certificate Transparency** — Queries public certificate records through crt.sh
+2. **DNS Brute-force** — Tests common subdomain names using a wordlist
+3. **Zone Transfer Checks** — Tests DNS servers for AXFR availability
+4. **Reverse DNS** — Performs PTR record lookups where applicable
+5. **Live Probing** — Checks discovered hosts over HTTP and HTTPS
+6. **Header Analysis** — Inspects HTTP response headers
+7. **Content Analysis** — Attempts to identify frameworks, CMS platforms, and other technologies
 
 ---
 
-## 📝 Project Structure
+## 📊 Output
 
+Results are stored inside the `output/` directory.
+
+```text
+output/
+├── target.com_subdomains.json
+├── target.com_live_hosts.json
+├── target.com_tech_detection.json
+└── target.com_report.html
+```
+
+### Output Details
+
+| File | Description |
+|------|-------------|
+| `*_subdomains.json` | Discovered subdomains |
+| `*_live_hosts.json` | Reachable HTTP/HTTPS hosts |
+| `*_tech_detection.json` | Detected technologies |
+| `*_report.html` | Generated reconnaissance report |
+
+Open the HTML file in your browser to view the complete report.
+
+---
+
+## ⚙️ Configuration
+
+RECON-X can be customized through `config.yaml`.
+
+```yaml
+target_domain: "example.com"
+threads: 10
+timeout: 5
+output_dir: "output"
+screenshot: false
+full_enum: false
+```
+
+### Configuration Options
+
+| Option | Description |
+|--------|-------------|
+| `target_domain` | Domain to enumerate |
+| `threads` | Number of parallel worker threads |
+| `timeout` | Network request timeout |
+| `output_dir` | Directory used for generated results |
+| `screenshot` | Screenshot functionality |
+| `full_enum` | Enables full enumeration mode |
+
+---
+
+## 📁 Project Structure
+
+```text
 recon-x/
 ├── src/
-│ ├── init.py
-│ ├── main.py # Entry point
-│ ├── enumerator.py # Subdomain enumeration
-│ ├── prober.py # Live host probing
-│ ├── detector.py # Technology fingerprinting
-│ └── reporter.py # HTML report generation
+│   ├── __init__.py
+│   ├── main.py
+│   ├── enumerator.py
+│   ├── prober.py
+│   ├── detector.py
+│   └── reporter.py
+│
+├── assets/
+│   └── recon-x.png
+│
 ├── wordlists/
-│ └── subdomains.txt # Common subdomain names
-├── output/ # Generated reports (created at runtime)
-├── config.yaml # Configuration file
-├── requirements.txt # Python dependencies
-├── README.md # This file
-├── TESTING.md # Testing guide
-└── .gitignore # Git ignore rules
+│   └── subdomains.txt
+│
+├── output/
+├── config.yaml
+├── requirements.txt
+├── README.md
+├── TESTING.md
+├── LICENSE
+└── .gitignore
+```
 
+### Core Components
+
+- `main.py` — CLI entry point and workflow controller
+- `enumerator.py` — Subdomain discovery
+- `prober.py` — HTTP/HTTPS live-host probing
+- `detector.py` — Technology fingerprinting
+- `reporter.py` — HTML report generation
 
 ---
 
 ## 🐛 Troubleshooting
 
-### No subdomains found
-- Verify domain is correct
-- Check internet connection
-- Try without DNS verification: `--no-dns`
+### No Subdomains Found
 
-### "ModuleNotFoundError: No module named 'src'"
-- Run from project root: `cd recon-x`
-- Use: `python -m src.main`
+Check that:
 
-### Slow execution
-- Increase threads: `-t 25`
-- Use less restrictive timeout: Edit config.yaml
+- The domain is correct
+- Your internet connection is working
+- DNS resolution is available
 
-### crt.sh API errors
-- Tool automatically falls back to DNS brute-force
-- No action needed
+You can also try:
 
-### Permission denied on output files
-- Check folder permissions
-- Ensure write access to `output/` folder
+```bash
+python -m src.main -d target.com --no-dns
+```
+
+### ModuleNotFoundError: No module named 'src'
+
+Make sure you are running RECON-X from the repository root:
+
+```bash
+cd recon-x
+python -m src.main -d target.com
+```
+
+### Slow Enumeration
+
+Increase the number of threads:
+
+```bash
+python -m src.main -d target.com -t 25
+```
+
+Use higher thread counts responsibly to avoid excessive requests.
+
+### crt.sh Errors
+
+If Certificate Transparency queries fail, RECON-X can continue using other configured enumeration methods.
+
+### Output Permission Errors
+
+Make sure your user account has permission to write to the `output/` directory.
 
 ---
 
-## 🚀 Next Steps
+## ⚠️ Responsible Use
 
-After reconnaissance:
+RECON-X is intended for:
 
-1. **Analyze Results**: Review the HTML report
-2. **Prioritize**: Focus on live hosts with interesting tech
-3. **Enumerate Further**: 
-   - Scan for common ports (nmap)
-   - Test for known vulnerabilities
-   - Check security headers
-4. **Test Vulnerabilities**: Use Burp Suite, OWASP ZAP
-5. **Document Findings**: Create professional report
-6. **Responsible Disclosure**: Report vulnerabilities properly
+- Authorized penetration testing
+- Bug bounty programs
+- Security research
+- Educational environments
+- Systems and domains you own
+
+Only scan systems for which you have **explicit authorization**.
+
+Always follow the target organization's security policy, bug bounty scope, rate limits, and applicable laws.
+
+The author is not responsible for misuse of this tool.
 
 ---
 
 ## 🤝 Contributing
 
-Found a bug? Have suggestions? 
+Contributions and suggestions are welcome.
 
-1. Test the issue thoroughly
-2. Create a detailed description
-3. Open an issue on GitHub
-4. Submit a pull request with fix
+To contribute:
+
+1. Fork the repository
+2. Create a new branch
+3. Make your changes
+4. Test the changes
+5. Submit a pull request
+
+You can also open an issue to report bugs or suggest improvements.
 
 ---
 
-## 📚 Resources
+## 📚 Learning Resources
 
-### Tools to Complement RECON-X
+- [PortSwigger Web Security Academy](https://portswigger.net/web-security)
+- [OWASP Web Security Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
+- [HackerOne Hacktivity](https://hackerone.com/hacktivity)
+- [Bugcrowd](https://www.bugcrowd.com/)
 
-- **Burp Suite**: Web application testing
-- **OWASP ZAP**: Vulnerability scanning
-- **Nmap**: Port scanning
-- **Nikto**: Web server scanning
-- **Shodan**: Device search engine
+---
 
-### Further Learning
+## 🧠 Skills Demonstrated
 
-- **HackerOne**: Active bug bounty programs
-- **Bugcrowd**: Organized vulnerability research
-- **OWASP**: Web security standards
-- **SANS**: Cybersecurity training
+RECON-X demonstrates practical experience with:
+
+- Python
+- Networking
+- DNS enumeration
+- HTTP/HTTPS
+- Reconnaissance automation
+- Multi-threading
+- JSON data processing
+- HTML report generation
+- CLI development
+- Git & GitHub
+
+---
+
+## 🗺️ Future Improvements
+
+Potential improvements for future versions include:
+
+- Screenshot capture
+- Additional passive reconnaissance sources
+- Improved technology fingerprinting
+- Custom wordlist support
+- Extended report customization
+- Additional export formats
 
 ---
 
 ## 📄 License
 
-MIT License - See LICENSE file for details
+This project is licensed under the **MIT License**.
+
+See the `LICENSE` file for details.
 
 ---
 
 ## 👤 Author
 
 **Gokulkrishnan S**
-- **GitHub**: [@Gokulpvtr](https://github.com/Gokulpvtr)
-- **Interest**: Offensive Security & Bug Bounty
-- **Location**: Kerala, India
-- **Education**: Final-year BCA, University of Kerala
+
+- GitHub: [@Gokulpvtr](https://github.com/Gokulpvtr)
+- Focus: Offensive Security, Web Application Security & Bug Bounty
+- Education: Final-year BCA student
 
 ---
 
-## 🎓 Skills Used
+## ⭐ Support RECON-X
 
-- Python programming
-- Network security
-- DNS enumeration
-- HTTP protocol
-- Multi-threading
-- JSON/HTML
-- Git & GitHub
-- Linux/Windows
+If you find RECON-X useful:
 
----
-
-## ⭐ Show Your Support
-
-If RECON-X helped you:
 - ⭐ Star the repository
-- 🔗 Share it with others
-- 💬 Provide feedback
 - 🐛 Report bugs
-- 🚀 Contribute improvements
+- 💡 Suggest improvements
+- 🔀 Contribute through pull requests
 
 ---
 
-**Happy hunting! 🎯**
+<p align="center">
+  <b>RECON-X</b><br>
+  Automated Reconnaissance & Enumeration
+</p>
+```
