@@ -6,6 +6,7 @@ from datetime import datetime
 from src.enumerator import run_enumeration
 from src.prober import run_probing
 from src.detector import run_detection
+from src.reporter import generate_report
 
 # Hacker theme colors
 BRIGHT_GREEN = '\033[1;92m'
@@ -57,62 +58,6 @@ def print_banner():
     
     print(banner)
 
-def print_network_diagram():
-    """Show a cool network diagram"""
-    diagram = f"""{CYAN}
-    ┏━━━━━━━━━━━━━━┓
-    ┃  TARGET.COM  ┃
-    ┗━━━┳━━━━━━━━━━┛
-        ┃
-    ┌───┼───────────────────────┐
-    │   │                       │
-    ▼   ▼                       ▼
-┌──────────┐  ┌──────────┐  ┌──────────┐
-│ sub1.com │  │ sub2.com │  │ sub3.com │
-└──────────┘  └──────────┘  └──────────┘
-    │ nginx     │ Apache    │ IIS
-    │ Django    │ React     │ WordPress
-    │           │           │
-    ✓ LIVE      ✓ LIVE      ✓ LIVE
-{RESET}"""
-    return diagram
-
-def print_summary(subdomains, live_hosts, tech_summary):
-    """Print summary statistics"""
-    summary = f"""{BRIGHT_GREEN}
-╔════════════════════════════════════════════╗
-║           RECONNAISSANCE SUMMARY           ║
-╠════════════════════════════════════════════╣
-║ Total Subdomains Found:  {len(subdomains):>20} ║
-║ Live Hosts Detected:     {len(live_hosts):>20} ║
-║ Responsiveness Rate:     {(len(live_hosts)/max(len(subdomains),1)*100):>18.1f}% ║
-╠════════════════════════════════════════════╣
-║               TECHNOLOGIES                 ║
-╠════════════════════════════════════════════╣
-"""
-    
-    # Add servers
-    if tech_summary.get("servers"):
-        summary += f"║ Web Servers:                               ║\n"
-        for server, count in list(tech_summary["servers"].items())[:3]:
-            summary += f"║   • {server}: {count}                            ║\n"
-    
-    # Add CMS
-    if tech_summary.get("cms_found"):
-        summary += f"║ CMS Platforms:                             ║\n"
-        for cms in tech_summary["cms_found"][:3]:
-            summary += f"║   • {cms}                              ║\n"
-    
-    # Add languages
-    if tech_summary.get("languages"):
-        summary += f"║ Languages:                                 ║\n"
-        for lang in tech_summary["languages"][:3]:
-            summary += f"║   • {lang}                              ║\n"
-    
-    summary += f"╚════════════════════════════════════════════╝{RESET}"
-    
-    return summary
-
 def main():
     print_banner()
     
@@ -124,6 +69,7 @@ def main():
     parser.add_argument('-t', '--threads', type=int, default=10, help='⚡ Thread count (default: 10)')
     parser.add_argument('--no-probe', action='store_true', help='🚫 Skip live host probing')
     parser.add_argument('--no-detect', action='store_true', help='🚫 Skip tech detection')
+    parser.add_argument('--no-report', action='store_true', help='🚫 Skip HTML report')
     parser.add_argument('--screenshot', action='store_true', help='📸 Enable screenshots')
     parser.add_argument('--full', action='store_true', help='🔍 Full enumeration')
     
@@ -134,13 +80,12 @@ def main():
     print(f"{GREEN}  [✓]{RESET} ⚡ Threads: {BRIGHT_GREEN}{args.threads}{RESET}")
     print(f"{GREEN}  [✓]{RESET} 🔍 Probe Hosts: {BRIGHT_GREEN}{'No' if args.no_probe else 'Yes'}{RESET}")
     print(f"{GREEN}  [✓]{RESET} 🛠️  Tech Detection: {BRIGHT_GREEN}{'No' if args.no_detect else 'Yes'}{RESET}")
-    print(f"{GREEN}  [✓]{RESET} 📸 Screenshots: {BRIGHT_GREEN}{'Yes' if args.screenshot else 'No'}{RESET}")
-    print(f"{GREEN}  [✓]{RESET} 🔍 Full Enum: {BRIGHT_GREEN}{'Yes' if args.full else 'No'}{RESET}")
+    print(f"{GREEN}  [✓]{RESET} 📊 Generate Report: {BRIGHT_GREEN}{'No' if args.no_report else 'Yes'}{RESET}")
     
     print(f"\n{YELLOW}⚠️  AUTHORIZATION CHECK{RESET}")
     print(f"{YELLOW}  [!]{RESET} Ensure you have written permission to scan: {BRIGHT_GREEN}{args.domain}{RESET}\n")
     
-    # Create output directory if it doesn't exist
+    # Create output directory
     os.makedirs('output', exist_ok=True)
     
     # Phase 1: Subdomain Enumeration
@@ -162,7 +107,7 @@ def main():
         live_hosts = run_probing(subdomains, probe_output_file, threads=args.threads)
     
     # Phase 3: Tech Detection
-    tech_summary = {}
+    tech_data = {}
     if not args.no_detect and len(live_hosts) > 0:
         print(f"\n{CYAN}{'='*60}{RESET}")
         print(f"{BRIGHT_GREEN}PHASE 3: TECHNOLOGY FINGERPRINTING{RESET}")
@@ -171,20 +116,30 @@ def main():
         detect_output_file = f"output/{args.domain}_tech_detection.json"
         tech_data, tech_summary = run_detection(live_hosts, detect_output_file, threads=args.threads)
     
-    # Show network diagram
-    print(print_network_diagram())
+    # Phase 4: Report Generation
+    if not args.no_report:
+        print(f"\n{CYAN}{'='*60}{RESET}")
+        print(f"{BRIGHT_GREEN}PHASE 4: REPORT GENERATION{RESET}")
+        print(f"{CYAN}{'='*60}{RESET}\n")
+        
+        report_output_file = f"output/{args.domain}_report.html"
+        generate_report(args.domain, subdomains, live_hosts, tech_data, report_output_file)
     
-    # Show summary
-    print(print_summary(subdomains, live_hosts, tech_summary))
+    # Summary
+    print(f"\n{CYAN}{'='*60}{RESET}")
+    print(f"{GREEN}[✓] RECONNAISSANCE COMPLETE!{RESET}")
+    print(f"{CYAN}{'='*60}{RESET}\n")
     
-    # Final results
-    print(f"\n{GREEN}[✓] Reconnaissance Complete!{RESET}")
-    print(f"{CYAN}[*] Enumeration: {BRIGHT_GREEN}output/{args.domain}_subdomains.json{RESET}")
+    print(f"{GREEN}📊 OUTPUT FILES:{RESET}")
+    print(f"{CYAN}  [1]{RESET} Subdomains: {BRIGHT_GREEN}output/{args.domain}_subdomains.json{RESET}")
     if live_hosts:
-        print(f"{CYAN}[*] Live hosts: {BRIGHT_GREEN}output/{args.domain}_live_hosts.json{RESET}")
-    if tech_summary:
-        print(f"{CYAN}[*] Tech detection: {BRIGHT_GREEN}output/{args.domain}_tech_detection.json{RESET}")
-    print()
+        print(f"{CYAN}  [2]{RESET} Live hosts: {BRIGHT_GREEN}output/{args.domain}_live_hosts.json{RESET}")
+    if tech_data:
+        print(f"{CYAN}  [3]{RESET} Tech detection: {BRIGHT_GREEN}output/{args.domain}_tech_detection.json{RESET}")
+    if not args.no_report:
+        print(f"{CYAN}  [4]{RESET} 📄 HTML Report: {BRIGHT_GREEN}output/{args.domain}_report.html{RESET}")
+    
+    print(f"\n{YELLOW}💡 TIP:{RESET} Open the HTML report in your browser to view results!\n")
 
 if __name__ == "__main__":
     main()
